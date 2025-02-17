@@ -11,8 +11,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog"
 
-	"github.com/mbatimel/RabbitMQAndGolang/internal/config"
-	"github.com/mbatimel/RabbitMQAndGolang/internal/metrics"
+	"github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/config"
+	"github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/metrics"
 )
 
 type ConnectManager interface {
@@ -29,7 +29,7 @@ func (m *manager) GetLimitsConn() (*pgxpool.Pool, *pgxpool.Pool) {
 	return m.master, m.replica
 }
 
-func New(log zerolog.Logger, cfg config.PostgresConfig) (ConnectManager, error) {
+func New(log zerolog.Logger, cfg config.Postgres) (ConnectManager, error) {
 	ctx := context.Background()
 
 	masterAddr, masterPort, err := parseDbAddressAndPort(cfg.Addr)
@@ -74,7 +74,7 @@ func parseDbAddressAndPort(conn string) (string, int, error) {
 	return address, port, nil
 }
 
-func dbConnect(ctx context.Context, pcfg *config.PostgresConfig, dbAddr string, dbPort int, db, user, password string) (*pgxpool.Pool, error) {
+func dbConnect(ctx context.Context, pcfg *config.Postgres, dbAddr string, dbPort int, db, user, password string) (*pgxpool.Pool, error) {
 	cfg, err := pgxpool.ParseConfig(fmt.Sprintf(
 		"host=%s port=%d dbname=%s sslmode=disable user=%s password=%s pool_max_conns=%d",
 		dbAddr, dbPort, db, user, password, pcfg.MaxConn,

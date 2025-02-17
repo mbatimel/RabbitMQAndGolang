@@ -10,7 +10,7 @@ import (
 
 	"github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/config"
 	"github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/service"
-	"github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/storages/postxxgres"
+	"github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/storage/postgres"
 	transportHttp "github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/transport/http"
 	"github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/transport/jsonRPC/externalapi"
 	"github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/transport/jsonRPC/middlewares"
@@ -25,7 +25,7 @@ func main() {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGTERM, syscall.SIGINT)
 
-	postgresStorage, err := postgres.New(config.Values().Postgres, log.Logger)
+	postgresStorage, err := postgres.New(log.Logger,config.Values().Postgres)
 	if err != nil {
 		log.Logger.Fatal().Err(err).Msg("failed to connect to postgres")
 	}

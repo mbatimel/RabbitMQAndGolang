@@ -1,10 +1,11 @@
 package config
 
 import (
-	"github.com/google/uuid"
 	"io"
 	"os"
 	"time"
+
+	"github.com/google/uuid"
 
 	metricsRegression "github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/metrics"
 	"github.com/rs/zerolog"
@@ -45,18 +46,17 @@ type Config struct {
 
 // Postgres
 type Postgres struct {
-	MaxConn         int    `env:"POSTGRES_MAX_CONN" envDefault:"25"`
-	MasterAddress   string `env:"POSTGRES_MASTER_ADDRESS"`
-	ReplicaAddress  string `env:"POSTGRES_REPLICA_ADDRESS"`
-	DBName          string `env:"POSTGRES_DB_NAME"`
-	UserName        string `env:"POSTGRES_USER_NAME_RW"`
-	Password        string `env:"POSTGRES_PASSWORD_RW"`
-	UserNameRO      string `env:"POSTGRES_USER_NAME_RO"`
-	PasswordRO      string `env:"POSTGRES_PASSWORD_RO"`
-	MaxIdleLifetime string `env:"POSTGRES_MAX_IDLE_LIFETIME" envDefault:"30s"`
-	MaxLifetime     string `env:"POSTGRES_MAX_LIFETIME" envDefault:"3m"`
-	PrepareCacheCap int    `env:"POSTGRES_PREPARE_CACHE_CAP" envDefault:"128"`
-	CacheDuration   string `env:"POSTGRES_CACHE_DURATION" envDefault:"12h"`
+	Addr            string `env:"PG_ADDR"`
+	DB              string `env:"PG_DB"`
+	User            string `env:"PG_USER"`
+	Password        string `env:"PG_PASSWORD"`
+	MaxConn         int    `env:"PG_MAX_CONN" envDefault:"10"`
+	MaxIdleLifetime string `env:"PG_MAX_IDLE_LIFETIME" envDefault:"30s"`
+	MaxLifetime     string `env:"PG_MAX_LIFETIME" envDefault:"3m"`
+	PrepareCacheCap int    `env:"PG_PREPARE_CACHE_CAP" envDefault:"128"`
+	ReplicaAddr     string `env:"PG_REPLICA_ADDR"`
+	UserRO          string `env:"PG_REPLICA_USER"`
+	PasswordRO      string `env:"PG_REPLICA_PASSWORD"`
 }
 
 func Metrics() *metricsRegression.Metrics {
