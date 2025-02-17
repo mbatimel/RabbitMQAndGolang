@@ -1,0 +1,123 @@
+openapi: 3.0.0
+info:
+    title: Subscriptions API
+    version: 0.0.1
+servers:
+    - {}
+paths:
+    /api/v1/activesubscription:
+        post:
+            tags:
+                - Subscription
+            summary: Ручка активации подписки
+            description: Ручка возвращает bool результут подкиски
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/requestSubscriptionActiveSubscription'
+            responses:
+                "200":
+                    description: Successful operation
+                "400":
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    additionalErrors:
+                                        type: object
+                                        properties:
+                                            errors:
+                                                type: array
+                                                items:
+                                                    type: object
+                                                    properties:
+                                                        params:
+                                                            type: object
+                                                            example:
+                                                                "1": value one
+                                                                "2": value two
+                                                            additionalProperties:
+                                                                type: string
+                                                        trKey:
+                                                            type: string
+                                                nullable: true
+                                        description: Текст ошибки, при ответе
+                                    data: {}
+                                    error:
+                                        type: boolean
+                                        description: Флаг показывающий, что ответ пришел с ошибкой
+                                    errorText:
+                                        type: string
+                                        example: content.api.errors.regressionApi.badRequest
+                                        description: Заголовок ошибки
+                "403":
+                    description: Forbidden
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    additionalErrors:
+                                        description: Текст ошибки, при ответе, со статус кодом 403, не указывается
+                                    data: {}
+                                    error:
+                                        type: boolean
+                                        description: Флаг показывающий, что ответ пришел с ошибкой
+                                    errorText:
+                                        type: string
+                                        example: content.api.errors.regressionApi.accessDenied
+                                        description: Заголовок ошибки
+                "405":
+                    description: Method Not Allowed
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    additionalErrors:
+                                        description: Текст ошибки, при ответе, со статус кодом 403, не указывается
+                                    data: {}
+                                    error:
+                                        type: boolean
+                                        description: Флаг показывающий, что ответ пришел с ошибкой
+                                    errorText:
+                                        type: string
+                                        example: content.api.errors.regressionApi.methodNotAllowed
+                                        description: Заголовок ошибки
+                "500":
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    additionalErrors:
+                                        description: Текст ошибки, при ответе, со статус кодом 403, не указывается
+                                    data: {}
+                                    error:
+                                        type: boolean
+                                        description: Флаг показывающий, что ответ пришел с ошибкой
+                                    errorText:
+                                        type: string
+                                        example: content.api.errors.regressionApi.internalError
+                                        description: Заголовок ошибки
+components:
+    schemas:
+        requestSubscriptionActiveSubscription:
+            type: object
+            required:
+                - limitId
+                - price
+            properties:
+                limitId:
+                    type: number
+                    format: int
+                price:
+                    type: number
+                    format: int
+            description: Ручка возвращает bool результут подкиски
+        responseSubscriptionActiveSubscription:
+            type: object
