@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: ${PG_IMAGE}:${PG_VERSION}
+    container_name: postgres_container
+    environment:
+      POSTGRES_DB: ${PG_DB}
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+    ports:
+      - "${PG_PORT}:${PG_PORT}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+
+
+
+volumes:
+  postgres_data:
