@@ -18,7 +18,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-const serviceName = "regression"
+const serviceName = "subscription"
 
 func main() {
 	log.Logger = config.Values().Logger().With().Str("serviceName", serviceName).Logger()
@@ -59,9 +59,9 @@ func main() {
 		defer wg.Done()
 		serveErr := server.ListenAndServe(config.Values().ServiceBind)
 		if serveErr != nil {
-			log.Fatal().Err(serveErr).Msg("failed to listen and serve pay-api-internal server")
+			log.Fatal().Err(serveErr).Msg("failed to listen and serve subscription server")
 		} else {
-			log.Error().Msg("external api pay-api-internal server stopped with no error")
+			log.Error().Msg("external api subscription server stopped with no error")
 		}
 	}()
 
