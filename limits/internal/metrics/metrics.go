@@ -9,24 +9,22 @@ type Metrics struct {
 
 type MetricLabelNames string
 
-func CreateMetrics(namespace, subsystem string, labels prometheus.Labels) *Metrics {
+func CreateMetrics(namespace, subsystem string) *Metrics {
 	var (
 		requestLatency = prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
-				Namespace:   namespace,
-				Subsystem:   subsystem,
-				Name:        "http_latency",
-				Help:        "The API methods latency info",
-				ConstLabels: labels,
+				Namespace: namespace,
+				Subsystem: subsystem,
+				Name:      "http_latency",
+				Help:      "The API methods latency info",
 			},
 			[]string{"service", "method", "success"})
 		httpCollector = prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Namespace:   namespace,
-				Subsystem:   subsystem,
-				Name:        "http_collector",
-				Help:        "The number of http requests",
-				ConstLabels: labels,
+				Namespace: namespace,
+				Subsystem: subsystem,
+				Name:      "http_collector",
+				Help:      "The number of http requests",
 			},
 			[]string{"service", "method", "success"},
 		)

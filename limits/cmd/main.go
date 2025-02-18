@@ -1,91 +1,50 @@
 package main
 
-// import (
-// 	"os"
-// 	"os/signal"
-// 	"sync"
-// 	"time"
+import (
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
 
-// 	"syscall"
+	"github.com/mbatimel/RabbitMQAndGolang/limits/internal/config"
+	"github.com/mbatimel/RabbitMQAndGolang/limits/internal/metrics"
+	"github.com/mbatimel/RabbitMQAndGolang/limits/internal/service"
+	"github.com/mbatimel/RabbitMQAndGolang/limits/internal/storage/postgres"
+	"github.com/rs/zerolog/log"
+	"github.com/streadway/amqp"
+)
 
-// 	"github.com/mbatimel/RabbitMQAndGolang/limits/internal/config"
-// 	"github.com/mbatimel/RabbitMQAndGolang/limits/internal/service"
-// 	"github.com/mbatimel/RabbitMQAndGolang/limits/internal/storage/postgres"
-// 	transportHttp "github.com/mbatimel/RabbitMQAndGolang/limits/internal/transport/http"
-// 	"github.com/mbatimel/RabbitMQAndGolang/limits/internal/transport/jsonRPC/externalapi"
-// 	"github.com/mbatimel/RabbitMQAndGolang/limits/internal/transport/jsonRPC/middlewares"
-// 	"github.com/rs/zerolog/log"
-// 	"github.com/valyala/fasthttp"
-// )
+const serviceName = "limits"
 
-// const serviceName = "limits"
+func main() {
+	log.Logger = config.Values().Logger().With().Str("serviceName", serviceName).Logger()
+	shutdown := make(chan os.Signal, 1)
+	signal.Notify(shutdown, syscall.SIGTERM, syscall.SIGINT)
 
-// func main() {
-// 	log.Logger = config.Values().Logger().With().Str("serviceName", serviceName).Logger()
-// 	shutdown := make(chan os.Signal, 1)
-// 	signal.Notify(shutdown, syscall.SIGTERM, syscall.SIGINT)
+	// Подключение к Postgres
+	postgresStorage, err := postgres.New(log.Logger, config.Values().Postgres)
+	if err != nil {
+		log.Logger.Fatal().Err(err).Msg("failed to connect to postgres")
+	}
+	storage := postgres.NewStorage(postgresStorage)
 
-// 	postgresStorage, err := postgres.New(log.Logger,config.Values().Postgres)
-// 	if err != nil {
-// 		log.Logger.Fatal().Err(err).Msg("failed to connect to postgres")
-// 	}
-// 	storage := postgres.NewStorage(postgresStorage)
-// 	svc := service.Newservice(log.Logger, storage)
+	// Подключение к RabbitMQ
+	rabbitMQConn, err := amqp.Dial(config.Values().RabbitMQ.URL)
+	if err != nil {
+		log.Logger.Fatal().Err(err).Msg("failed to connect to RabbitMQ")
+	}
 
-// 	services := []externalapi.Option{
-// 		externalapi.Use(middlewares.Recover),
-// 		externalapi.Subscription(externalapi.NewSubscription(svc)),
-// 	}
-// 	app := externalapi.New(log.Logger, services...).WithLog().WithMetrics()
-// 	server := &fasthttp.Server{
-// 		Handler:            app.Fiber().Handler(),
-// 		MaxRequestBodySize: config.Values().MaxRequestBodySize,
-// 		ReadBufferSize:     config.Values().MaxRequestHeaderSize,
-// 		ReadTimeout:        time.Duration(config.Values().ReadTimeout) * time.Second,
-// 	}
+	metricsCollector := metrics.CreateMetrics(serviceName, serviceName)
+	ctx := context.Background()
 
-// 	healthServer := transportHttp.NewHealthServer()
+	// Передаем RabbitMQ соединение в сервис
+	svc := service.Newservice(ctx, log.Logger, storage, metricsCollector, rabbitMQConn)
 
-// 	wg := &sync.WaitGroup{}
+	go func() {
+		log.Info().Msg("started consumer service")
+		svc.StartWorker(config.Values().RabbitMQ.Queue)
+	}()
 
-// 	wg.Add(1)
-// 	go func() {
-// 		defer wg.Done()
-// 		app.ServeMetrics(log.Logger, config.Values().MetricsPath, config.Values().MetricsBind)
-// 	}()
-
-// 	wg.Add(1)
-// 	go func() {
-// 		defer wg.Done()
-// 		serveErr := server.ListenAndServe(config.Values().ServiceBind)
-// 		if serveErr != nil {
-// 			log.Fatal().Err(serveErr).Msg("failed to listen and serve pay-api-internal server")
-// 		} else {
-// 			log.Error().Msg("external api pay-api-internal server stopped with no error")
-// 		}
-// 	}()
-
-// 	wg.Add(1)
-// 	go func() {
-// 		defer wg.Done()
-// 		healthErr := healthServer.Start(config.Values().HealthBind)
-// 		if healthErr != nil {
-// 			log.Error().Err(healthErr).Msg("failed to start health server")
-// 		} else {
-// 			log.Error().Msg("health server stopped with no error")
-// 		}
-// 	}()
-
-// 	<-shutdown
-// 	err = healthServer.Stop()
-// 	if err != nil {
-// 		log.Error().Err(err).Msg("failed to stop health server")
-// 	}
-
-// 	err = server.Shutdown()
-// 	if err != nil {
-// 		log.Error().Err(err).Msg("failed to shutdown server")
-// 	}
-
-// 	wg.Wait()
-// }
+	<-shutdown
+	svc.StopWorker()
+}

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS main.subscriptions
 );
 CREATE TABLE IF NOT EXISTS main.limits
 (
-    id                 int primary key,
+    id                 uuid primary key default uuid_generate_v4(),
     limit_id           int,                      
     count              int                       not null,                     
     describe           text
