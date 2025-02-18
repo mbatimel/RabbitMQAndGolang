@@ -20,17 +20,17 @@ func StartNodesMigration(nodes []DatabaseConnectionParams, nodesMigrationsDirect
 	}
 	err = setup(nodesMigrationsFs)
 	if err != nil {
-		return
+		return err
 	}
 	connections, err := openConnections(nodes)
 	if err != nil {
-		return
+		return err
 	}
 	defer closeConnections(connections)
 
 	versions, err := getCurrentNodesVersions(connections)
 	if err != nil {
-		return
+		return err
 	}
 
 	log.Info().Msg("Database migration launched")
