@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/mbatimel/RabbitMQAndGolang/limits/internal/metrics"
 	"github.com/mbatimel/RabbitMQAndGolang/limits/internal/models"
@@ -80,9 +81,16 @@ func (s *LimitsWorker) StartWorker(queueName string) {
 		case <-s.ctx.Done():
 			s.logger.Info().Msg("RabbitMQ consumer stopped")
 			return
-		case msg := <-msgs:
 
+		case msg, ok := <-msgs:
+			if !ok {
+				s.logger.Warn().Msg("RabbitMQ channel closed")
+				return
+			}
 			s.HandleMessage(msg)
+
+		case <-time.After(5 * time.Second):
+			s.logger.Info().Msg("No messages in RabbitMQ queue")
 		}
 	}
 }
