@@ -5,6 +5,7 @@ import (
 	"context"
 	"github.com/gofiber/fiber/v2"
 	customhandlers "github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/transport/jsonRPC/custom-handlers"
+	"strconv"
 )
 
 func (http *httpSubscription) activeSubscription(ctx context.Context, request requestSubscriptionActiveSubscription) (response responseSubscriptionActiveSubscription, err error) {
@@ -20,10 +21,24 @@ func (http *httpSubscription) activeSubscription(ctx context.Context, request re
 func (http *httpSubscription) serveActiveSubscription(ctx *fiber.Ctx) (err error) {
 
 	var request requestSubscriptionActiveSubscription
-	if err = ctx.BodyParser(&request); err != nil {
-		ctx.Response().SetStatusCode(fiber.StatusBadRequest)
-		_, err = ctx.WriteString("request body could not be decoded: " + err.Error())
-		return
+
+	if _limitId := ctx.Query("limitId"); _limitId != "" {
+		var limitId int
+		limitId, err = strconv.Atoi(_limitId)
+		if err != nil {
+			ctx.Status(fiber.StatusBadRequest)
+			return sendResponse(ctx, "url arguments could not be decoded: "+err.Error())
+		}
+		request.LimitId = limitId
+	}
+	if _price := ctx.Query("price"); _price != "" {
+		var price int
+		price, err = strconv.Atoi(_price)
+		if err != nil {
+			ctx.Status(fiber.StatusBadRequest)
+			return sendResponse(ctx, "url arguments could not be decoded: "+err.Error())
+		}
+		request.Price = price
 	}
 
 	return customhandlers.ActiveSubscription(ctx, http.svc, request.LimitId, request.Price)

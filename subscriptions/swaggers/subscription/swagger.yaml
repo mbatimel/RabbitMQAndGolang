@@ -11,11 +11,17 @@ paths:
                 - Subscription
             summary: Ручка активации подписки
             description: Ручка возвращает bool результут подкиски
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/requestSubscriptionActiveSubscription'
+            parameters:
+                - in: query
+                  name: limitId
+                  schema:
+                    type: number
+                    format: int
+                - in: query
+                  name: price
+                  schema:
+                    type: number
+                    format: int
             responses:
                 "200":
                     description: Successful operation
@@ -108,16 +114,5 @@ components:
     schemas:
         requestSubscriptionActiveSubscription:
             type: object
-            required:
-                - limitId
-                - price
-            properties:
-                limitId:
-                    type: number
-                    format: int
-                price:
-                    type: number
-                    format: int
-            description: Ручка возвращает bool результут подкиски
         responseSubscriptionActiveSubscription:
             type: object

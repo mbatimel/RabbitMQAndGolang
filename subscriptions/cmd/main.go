@@ -15,6 +15,7 @@ import (
 	"github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/transport/jsonRPC/externalapi"
 	"github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/transport/jsonRPC/middlewares"
 	"github.com/rs/zerolog/log"
+	"github.com/streadway/amqp"
 	"github.com/valyala/fasthttp"
 )
 
@@ -25,12 +26,17 @@ func main() {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGTERM, syscall.SIGINT)
 
-	postgresStorage, err := postgres.New(log.Logger,config.Values().Postgres)
+	postgresStorage, err := postgres.New(log.Logger, config.Values().Postgres)
 	if err != nil {
 		log.Logger.Fatal().Err(err).Msg("failed to connect to postgres")
 	}
 	storage := postgres.NewStorage(postgresStorage)
-	svc := service.Newservice(log.Logger, storage)
+	rabbitMQ, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed Initializing Broker Connection")
+
+	}
+	svc := service.Newservice(log.Logger, storage, rabbitMQ)
 
 	services := []externalapi.Option{
 		externalapi.Use(middlewares.Recover),

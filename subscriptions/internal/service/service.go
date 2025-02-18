@@ -7,6 +7,7 @@ import (
 	externalApi "github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/interfaces"
 	"github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/models"
 	"github.com/rs/zerolog"
+	"github.com/streadway/amqp"
 )
 
 type UnitOfWork interface {
@@ -18,8 +19,9 @@ type Storage interface {
 	ActiveSubscription(ctx context.Context, ouw UnitOfWork, limitId int, price int) (err error)
 }
 type subscriptionService struct {
-	logger  zerolog.Logger
-	storage Storage
+	logger   zerolog.Logger
+	storage  Storage
+	rabbitMQ *amqp.Connection
 }
 
 func (s *subscriptionService) ActiveSubscription(ctx context.Context, limitId int, price int) (err error) {
@@ -33,12 +35,50 @@ func (s *subscriptionService) ActiveSubscription(ctx context.Context, limitId in
 	if limitId == 0 {
 		return fmt.Errorf("Why are you don't have a limitID ((((")
 	}
-	return s.storage.ActiveSubscription(ctx, uow, limitId, price)
+	if err := s.storage.ActiveSubscription(ctx, uow, limitId, price); err != nil {
+		return fmt.Errorf("error activate subscription: %w", err)
+	}
+
+	ch, err := s.rabbitMQ.Channel()
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer ch.Close()
+
+	_, err = ch.QueueDeclare(
+		"Subscription_limits",
+		false,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to declare: %w", err)
+	}
+
+	err = ch.Publish(
+		"",
+		"Subscription_limits",
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte("Hello World"),
+		},
+	)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("Successfully Published Message to Queue")
+	return nil
 
 }
-func Newservice(logger zerolog.Logger, storage Storage) externalApi.Subscription {
+func Newservice(logger zerolog.Logger, storage Storage, rabbitMQ *amqp.Connection) externalApi.Subscription {
 	return &subscriptionService{
-		storage: storage,
-		logger:  logger,
+		storage:  storage,
+		logger:   logger,
+		rabbitMQ: rabbitMQ,
 	}
 }

@@ -5,8 +5,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/google/uuid"
-
 	metricsRegression "github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/metrics"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
@@ -30,13 +28,10 @@ type Config struct {
 	LogLevel  string `env:"LOGGER_LEVEL" envDefault:"debug"`
 	LogFormat string `env:"LOGGER_FORMAT" envDefault:""`
 
-	// common env vars
-	ServiceID       uuid.UUID   `env:"SERVICE_ID"`
-	InnerServiceIDs []uuid.UUID `env:"INNER_SERVICE_IDS"`
-	ServiceBind     string      `env:"BIND_ADDR" envDefault:":9000" useFromEnv:"-"`
-	HealthBind      string      `env:"BIND_HEALTH" envDefault:":9091" useFromEnv:"-"`
-	MetricsBind     string      `env:"BIND_METRICS" envDefault:":9090" useFromEnv:"-"`
-	MetricsPath     string      `env:"METRICS_PATH" envDefault:"/metrics" useFromEnv:"-"`
+	ServiceBind string `env:"BIND_ADDR" envDefault:":9000" useFromEnv:"-"`
+	HealthBind  string `env:"BIND_HEALTH" envDefault:":9091" useFromEnv:"-"`
+	MetricsBind string `env:"BIND_METRICS" envDefault:":9090" useFromEnv:"-"`
+	MetricsPath string `env:"METRICS_PATH" envDefault:"/metrics" useFromEnv:"-"`
 
 	MaxRequestBodySize   int   `env:"MAX_REQUEST_BODY_SIZE" envDefault:"104857600"` // 100 MB
 	MaxRequestHeaderSize int   `env:"MAX_REQUEST_HEADER_SIZE" envDefault:"16384"`   // 16 KB

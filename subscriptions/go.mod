@@ -39,5 +39,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/prometheus/client_golang v1.20.5
 	github.com/seniorGolang/gokit v1.0.18
+	github.com/streadway/amqp v1.1.0
 	golang.org/x/sys v0.28.0 // indirect
 )

@@ -21,6 +21,8 @@ type Subscription interface {
 	// ActiveSubscription ...
 	// @tg http-method=POST
 	// @tg http-path=/activesubscription
+	// @tg http-args=limitId|limitId
+	// @tg http-args=price|price
 	// @tg summary=`Ручка активации подписки`
 	// @tg http-response=github.com/mbatimel/RabbitMQAndGolang/subscriptions/internal/transport/jsonRPC/custom-handlers:ActiveSubscription
 	// @tg desc=`Ручка возвращает bool результут подкиски`
