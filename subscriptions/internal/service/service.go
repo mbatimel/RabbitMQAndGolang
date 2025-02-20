@@ -16,7 +16,7 @@ type UnitOfWork interface {
 }
 type Storage interface {
 	GetUnitOfWork(context.Context, bool) (UnitOfWork, error)
-	ActiveSubscription(ctx context.Context, ouw UnitOfWork, limitId int, price int) (err error)
+	ActiveSubscription(ctx context.Context, ouw UnitOfWork, limitId int, price int) (supplierID int, err error)
 }
 type subscriptionService struct {
 	logger   zerolog.Logger
@@ -35,10 +35,11 @@ func (s *subscriptionService) ActiveSubscription(ctx context.Context, limitId in
 	if limitId == 0 {
 		return fmt.Errorf("Why are you don't have a limitID ((((")
 	}
-	if err := s.storage.ActiveSubscription(ctx, uow, limitId, price); err != nil {
+	supplierID, err := s.storage.ActiveSubscription(ctx, uow, limitId, price)
+	if err != nil {
 		return fmt.Errorf("error activate subscription: %w", err)
 	}
-
+	messageBody := []byte(fmt.Sprintf("%d:%d", supplierID, limitId))
 	ch, err := s.rabbitMQ.Channel()
 	if err != nil {
 		fmt.Println(err)
@@ -65,7 +66,7 @@ func (s *subscriptionService) ActiveSubscription(ctx context.Context, limitId in
 		false,
 		amqp.Publishing{
 			ContentType: "text/plain",
-			Body:        []byte("Hello World"),
+			Body:        messageBody,
 		},
 	)
 	if err != nil {

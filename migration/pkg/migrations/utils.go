@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mbatimel/RabbitMQAndGolang/migration/pkg/goose_logger"
 	"github.com/pressly/goose/v3"
 	"github.com/rs/zerolog/log"
-	"github.com/mbatimel/RabbitMQAndGolang/migration/pkg/goose_logger"
 )
 
 type DatabaseConnectionParams struct {

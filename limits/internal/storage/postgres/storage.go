@@ -28,12 +28,12 @@ func (s *storage) unpackUnitOfWork(unitOfWork service.UnitOfWork) (pgx.Tx, error
 	}
 	return tx, nil
 }
-func (s *storage) AddLimits(ctx context.Context, ouw service.UnitOfWork, count int, limit_id int, describe string) (err error) {
+func (s *storage) AddLimits(ctx context.Context, ouw service.UnitOfWork, supplierID int, count int, limit_id int, describe string) (err error) {
 	tx, err := s.unpackUnitOfWork(ouw)
 	if err != nil {
 		return fmt.Errorf("could not unpack uow: %w", err)
 	}
-	return s.addLimits(ctx, tx, count, limit_id, describe)
+	return s.addLimits(ctx, tx, supplierID, count, limit_id, describe)
 }
 
 func NewStorage(conn ConnectManager) *storage {

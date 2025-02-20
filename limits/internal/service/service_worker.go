@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mbatimel/RabbitMQAndGolang/limits/internal/metrics"
@@ -17,7 +19,7 @@ type UnitOfWork interface {
 }
 type Storage interface {
 	GetUnitOfWork(context.Context, bool) (UnitOfWork, error)
-	AddLimits(ctx context.Context, ouw UnitOfWork, count int, limit_id int, describe string) (err error)
+	AddLimits(ctx context.Context, ouw UnitOfWork, supplierIDint, count int, limit_id int, describe string) (err error)
 }
 type LimitsWorker struct {
 	logger       zerolog.Logger
@@ -28,7 +30,7 @@ type LimitsWorker struct {
 	rabbitMQConn *amqp.Connection
 }
 
-func (s *LimitsWorker) AddLimits(ctx context.Context, count int, limit_id int, describe string) (err error) {
+func (s *LimitsWorker) AddLimits(ctx context.Context, supplierID int, count int, limit_id int, describe string) (err error) {
 	uow, err := s.storage.GetUnitOfWork(ctx, models.MASTER)
 	if err != nil {
 		return fmt.Errorf("could not obtain unit of work: %w", err)
@@ -37,7 +39,7 @@ func (s *LimitsWorker) AddLimits(ctx context.Context, count int, limit_id int, d
 		_ = uow.Rollback(ctx)
 	}()
 
-	return s.storage.AddLimits(ctx, uow, count, limit_id, describe)
+	return s.storage.AddLimits(ctx, uow, supplierID, count, limit_id, describe)
 
 }
 func Newservice(ctx context.Context, logger zerolog.Logger, storage Storage, metricsCollector *metrics.Metrics, rabbitMQConn *amqp.Connection) *LimitsWorker {
@@ -97,15 +99,31 @@ func (s *LimitsWorker) StartWorker(queueName string) {
 
 func (s *LimitsWorker) HandleMessage(msg amqp.Delivery) {
 
-	logger := s.logger.With().Str("msgID", string(msg.MessageId)).Logger()
-
-	// Логируем сообщение
-	logger.Info().Msgf("Received message from RabbitMQ queue: %s", string(msg.Body))
-
-	// Подтверждаем получение сообщения
-	err := msg.Ack(false)
+	s.logger.With().Str("msgID: %s \nReceived message from RabbitMQ queue: %s", string(msg.MessageId)).Logger()
+	parts := strings.Split(string(msg.Body), ":")
+	var supplierID int
+	var limit_id int
+	var count int
+	var describe string
+	supplierID, err := strconv.Atoi(parts[0])
 	if err != nil {
-		logger.Error().Err(err).Msg("Failed to acknowledge message")
+		s.logger.Error().Err(err).Msg("Failed to parse supplierID")
+	}
+	limit_id, err = strconv.Atoi(parts[1])
+	if err != nil {
+		s.logger.Error().Err(err).Msg("Failed to parse limit id")
+	}
+	if limit_id == 1 {
+		count = 100
+		describe = "топовый лимит"
+	}
+	if err := s.AddLimits(s.ctx, supplierID, limit_id, count, describe); err != nil {
+		s.logger.Error().Err(err).Msg("Failed to parse limit id")
+	}
+	// Подтверждаем получение сообщения
+	err = msg.Ack(false)
+	if err != nil {
+		s.logger.Error().Err(err).Msg("Failed to acknowledge message")
 	}
 
 }

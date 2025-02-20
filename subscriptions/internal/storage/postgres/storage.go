@@ -28,10 +28,10 @@ func (s *storage) unpackUnitOfWork(unitOfWork service.UnitOfWork) (pgx.Tx, error
 	}
 	return tx, nil
 }
-func (s *storage) ActiveSubscription(ctx context.Context, ouw service.UnitOfWork, limitId int, price int) (err error) {
+func (s *storage) ActiveSubscription(ctx context.Context, ouw service.UnitOfWork, limitId int, price int) (supplierID int, err error) {
 	tx, err := s.unpackUnitOfWork(ouw)
 	if err != nil {
-		return fmt.Errorf("could not unpack uow: %w", err)
+		return 0, fmt.Errorf("could not unpack uow: %w", err)
 	}
 	return s.activateSubscription(ctx, tx, limitId, price)
 }

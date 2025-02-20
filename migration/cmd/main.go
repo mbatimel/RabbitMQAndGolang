@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
+	"github.com/mbatimel/RabbitMQAndGolang/migration/pkg/migrations"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/mbatimel/RabbitMQAndGolang/migration/pkg/migrations"
 )
 
 type PGConfig struct {
