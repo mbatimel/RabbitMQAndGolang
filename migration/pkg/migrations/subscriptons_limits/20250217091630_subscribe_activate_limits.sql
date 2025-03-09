@@ -2,6 +2,7 @@
 -- +goose StatementBegin
 SELECT 'up SQL query';
 -- +goose StatementEnd
+CREATE SCHEMA IF NOT EXISTS migrations;
 CREATE SCHEMA IF NOT EXISTS main;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS main.subscriptions
