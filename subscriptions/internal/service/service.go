@@ -46,9 +46,10 @@ func (s *subscriptionService) ActiveSubscription(ctx context.Context, limitId in
 	}
 	defer ch.Close()
 
+	//  подскажу, тут надо смотреть, в зависимости от типа обработчика тут меняются параметры
 	_, err = ch.QueueDeclare(
 		"Subscription_limits",
-		false,
+		true,
 		false,
 		false,
 		false,
@@ -60,7 +61,7 @@ func (s *subscriptionService) ActiveSubscription(ctx context.Context, limitId in
 	}
 
 	err = ch.Publish(
-		"",
+		"popa",
 		"Subscription_limits",
 		false,
 		false,

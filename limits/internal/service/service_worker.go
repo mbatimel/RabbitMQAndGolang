@@ -62,6 +62,7 @@ func (s *LimitsWorker) StartWorker(queueName string) {
 	}
 	defer ch.Close()
 
+	//  подскажу, тут надо смотреть, в зависимости от типа обработчика тут меняются параметры
 	msgs, err := ch.Consume(
 		queueName, // имя очереди
 		"",        // consumer tag
@@ -89,6 +90,7 @@ func (s *LimitsWorker) StartWorker(queueName string) {
 				s.logger.Warn().Msg("RabbitMQ channel closed")
 				return
 			}
+			s.logger.Info().Interface("msg", msg.Body).Msg("Have message )))) you are good boy!!!")
 			s.HandleMessage(msg)
 
 		case <-time.After(5 * time.Second):
