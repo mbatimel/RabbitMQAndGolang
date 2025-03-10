@@ -156,12 +156,28 @@ RabbitMQ — больше, чем просто брокер сообщений. 
    ```sh
    cd migration
    ```
+4. Получите переменные окружения:
+Win:
+   ```powershell
+   Get-Content .env | ForEach-Object {
+       if ($_ -match '^\s*([^=]+)=(.*)\s*$') {
+           $key = $matches[1]
+           $value = $matches[2]
+           [System.Environment]::SetEnvironmentVariable($key, $value, [System.EnvironmentVariableTarget]::Process)
+       }
+   }
+   ```
+MacOS:
+   ```terimnal
+   set -a && source .env && set +a
+   ```
    ![image](screen/migrations.png)
-4. Запустите контейнеры:
+
+5. Запустите контейнеры:
    ```sh
    docker-compose up
    ```
-5. После успешного запуска контейнеров:
+6. После успешного запуска контейнеров:
    - В терминале появятся логи.
    - В Docker Desktop будут отображены активные контейнеры.
    
