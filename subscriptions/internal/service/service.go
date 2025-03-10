@@ -61,7 +61,7 @@ func (s *subscriptionService) ActiveSubscription(ctx context.Context, limitId in
 	}
 
 	err = ch.Publish(
-		"popa",
+		"",
 		"Subscription_limits",
 		false,
 		false,
